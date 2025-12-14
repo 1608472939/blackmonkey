@@ -1,0 +1,18 @@
+# UE5 忽略文件
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+Build/
+
+# VS 产生的临时文件
+.vs/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+
+# 忽略所有编译生成的 DLL 和 exe
+*.dll
+*.exe
+*.pdb
