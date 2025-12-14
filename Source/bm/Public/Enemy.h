@@ -2,70 +2,102 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Enemy.generated.h" // 这里的名字必须和文件名一致
+#include "CombatInterface.h" // 引入接口
+#include "Enemy.generated.h"
 
-class UPawnSensingComponent; // 前向声明
+// 定义状态枚举（体现C++状态管理）
+UENUM(BlueprintType)
+enum class EEnemyState : uint8
+{
+    Idle        UMETA(DisplayName = "Idle"),
+    Chasing     UMETA(DisplayName = "Chasing"),
+    Attacking   UMETA(DisplayName = "Attacking"),
+    Stunned     UMETA(DisplayName = "Stunned"), // 受击硬直
+    Dead        UMETA(DisplayName = "Dead")
+};
+
+class UPawnSensingComponent;
 
 UCLASS()
-class BM_API AEnemy : public ACharacter
+class BM_API AEnemy : public ACharacter, public ICombatInterface
 {
     GENERATED_BODY()
 
 public:
-    // 构造函数
     AEnemy();
 
 protected:
-    // 游戏开始时执行
     virtual void BeginPlay() override;
 
 public:
-    // 每帧执行
     virtual void Tick(float DeltaTime) override;
 
-    // --- 属性定义 ---
+    // --- 接口实现 ---
+    virtual void GetHit_Implementation(float DamageAmount, AActor* Attacker, const FVector& HitLocation) override;
 
-    // 敌人最大血量
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy Stats")
+    // --- 核心属性 ---
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     float MaxHealth = 100.0f;
 
-    // 当前血量
-    UPROPERTY(VisibleAnywhere, Category = "Enemy Stats")
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Stats")
     float CurrentHealth;
 
-    // 攻击力
-    UPROPERTY(EditAnywhere, Category = "Enemy Stats")
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Stats")
     float AttackDamage = 10.0f;
 
-    // 攻击距离
-    UPROPERTY(EditAnywhere, Category = "Enemy Stats")
-    float AttackRange = 150.0f;
+    // 状态机变量
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI")
+    EEnemyState EnemyState;
 
-    // --- 组件定义 ---
+    // --- 动画资源 (在蓝图中赋值) ---
+    UPROPERTY(EditDefaultsOnly, Category = "Combat")
+    UAnimMontage* AttackMontage; // 攻击动作
 
-    // 感知组件（用来作为敌人的“眼睛”）
+    UPROPERTY(EditDefaultsOnly, Category = "Combat")
+    UAnimMontage* HitReactMontage; // 受击硬直动作
+
+    UPROPERTY(EditDefaultsOnly, Category = "Combat")
+    UAnimMontage* DeathMontage; // 死亡动作
+
+    // --- AI 感知 ---
     UPROPERTY(VisibleAnywhere, Category = "AI")
     UPawnSensingComponent* PawnSensingComp;
 
-    // --- 函数定义 ---
+    // 攻击检测半径 (球形射线检测)
+    UPROPERTY(EditAnywhere, Category = "Combat")
+    float AttackTraceRadius = 50.0f;
 
-    // 受伤函数（重写UE自带的）
-    virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+    // 攻击距离 (决定何时停下来攻击)
+    UPROPERTY(EditAnywhere, Category = "Combat")
+    float AttackRange = 150.0f;
 
-private:
-    // 当看见玩家时触发
+protected:
+    // 目标
+    UPROPERTY(VisibleAnywhere, Category = "AI")
+    AActor* TargetActor;
+
+    // AI控制器引用
+    UPROPERTY()
+    class AAIController* EnemyController;
+
     UFUNCTION()
     void OnSeePlayer(APawn* SeenPawn);
 
-    // 攻击玩家
-    void AttackTarget();
+    // 真正的攻击逻辑（播放动画）
+    virtual void AttackTarget();
 
-    // 攻击冷却相关的变量
-    bool bCanAttack = true;
-    FTimerHandle AttackTimerHandle;
-    void ResetAttack();
+    // 动画通知调用的函数：攻击判定帧（关键！体现动作游戏特性）
+    UFUNCTION(BlueprintCallable, Category = "Combat")
+    void CheckCombatHit();
 
-    // 记录锁定的目标
-    UPROPERTY()
-    AActor* TargetActor;
+    // 内部函数：死亡
+    virtual void Die();
+
+    // 内部函数：攻击结束，重置状态
+    UFUNCTION()
+    void OnAttackMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
+    // 内部函数：受击结束
+    UFUNCTION()
+    void OnHitReactMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 };
