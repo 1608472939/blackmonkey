@@ -39,7 +39,7 @@ void UWukongUserWidget::OnStartClicked() {
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Start Button Clicked!"));
 
 	// Ö´ÐÐ¹Ø¿¨Ìø×ª
-	UGameplayStatics::OpenLevel(this, FName("/Game/UE_1"));
+	UGameplayStatics::OpenLevel(this, FName("/Game/map1"));
 }
 
 void UWukongUserWidget::OnQuitClicked()

@@ -75,12 +75,13 @@ void AWukong_Weapon::OnWeaponOverlap(UPrimitiveComponent* OverlappedComponent, A
             SweepResult.ImpactPoint // 传入击中位置用于特效或计算
         );
 
-        // 成功触发接口后，打印绿字确认
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("接口调用成功：已发送伤害请求"));
+        // 成功触发接口后，打印绿字确认，调试使用
+        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, TEXT("接口调用成功：已发送伤害请求"));
     }
     else
     {
-        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("警告：目标未实现 CombatInterface"));
+        // 调试使用
+        //GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("警告：目标未实现 CombatInterface"));
     }
 
     /*UGameplayStatics::ApplyDamage(

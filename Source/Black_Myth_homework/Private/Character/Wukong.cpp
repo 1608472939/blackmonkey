@@ -94,7 +94,7 @@ void AWukong::TeleportToSpecificIndex()
 	{
 		TeleportToTarget(AllTeleportPoints[position]);
 		position++;
-		if (position == 2) {
+		if (position == 3) {
 			position = 0;
 		}
 	}
@@ -104,6 +104,13 @@ void AWukong::TeleportToSpecificIndex()
 void AWukong::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// 1. 清空数组防止重复
+	AllTeleportPoints.Empty();
+
+	// 2. 动态搜寻场景中所有的 TargetPoint（或者你自定义的 TeleportPoint 类）
+	// 第一个参数是 World，第二个是搜索的类，第三个是接收结果的数组
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ATargetPoint::StaticClass(), AllTeleportPoints);
 
 	UWorld* World = GetWorld();
 	if (World) {
@@ -277,8 +284,6 @@ void AWukong::OnHitReactMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 			// 如果你在 GetHit 里用了 StopMovementImmediately，
 			// 也可以在这里确保速度不再受限
 		}
-
-		GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, TEXT("悟空移动已恢复"));
 	}
 	
 }
@@ -499,30 +504,3 @@ void AWukong::PlayDodgeMontage()
 	}
 }
 
-
-//待整合
-//void AWukong::PlayReactMontage() {
-//	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-//	if (AnimInstance && HitReactMontage) {
-//		AnimInstance->Montage_Play(HitReactMontage);
-//		FName SectionName = FName();
-//		int Deriaction = 0;
-//		switch (Deriaction) {
-//		case 1:
-//			SectionName = FName("HitReact1");
-//			break;
-//		case 2:
-//			SectionName = FName("HitReact2");
-//			break;
-//		case 3:
-//			SectionName = FName("HitReact3");
-//			break;
-//		case 4:
-//			SectionName = FName("HitReact4");
-//			break;
-//		default:
-//			break;
-//		}
-//		AnimInstance->Montage_JumpToSection(SectionName, HitReactMontage);
-//	}
-//}
